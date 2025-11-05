@@ -1,0 +1,43 @@
+# Claude Context Exclusion Configuration
+# This file will be used by Claude Code when .claudeignore support is implemented
+# For now, exclusions are handled via .gitignore
+
+# Archive directory - Contains historical data that should not be in active context
+archive/
+
+# Python virtual environment - Contains dependencies, not source code
+venv/
+
+# Build and temporary directories
+**/.terraform/
+**/node_modules/
+**/__pycache__/
+**/build/
+**/dist/
+
+# OS and IDE files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+crash.log
+crash.*.log
+
+# Backup files
+*.backup
+*.bak
+
+# Large binary files
+*.tfstate
+*.tfstate.*
+*.zip
+*.tar.gz
+*.exe
+*.dll
+*.so
+*.dylib
