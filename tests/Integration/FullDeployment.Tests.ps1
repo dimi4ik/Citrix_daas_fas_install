@@ -158,8 +158,8 @@ Describe "FAS Complete Deployment Workflow" -Tag 'Integration', 'E2E' {
 
     Context "Phase 3: User Rules Configuration (Configure-FAS-UserRules.ps1)" {
 
-        BeforeAll {
-            # Setup prerequisites
+        It "Should create certificate definition with custom template" {
+            # Setup prerequisites for this test
             Initialize-MockService -Name "CitrixFederatedAuthenticationService" `
                                   -Status "Running"
 
@@ -169,9 +169,8 @@ Describe "FAS Complete Deployment Workflow" -Tag 'Integration', 'E2E' {
 
             $null = New-FasAuthorizationCertificate -Address $script:TestConfig.FASAddress `
                                                    -CertificateAuthority $script:TestConfig.CAServers[0]
-        }
 
-        It "Should create certificate definition with custom template" {
+            # Test execution
             # Arrange
             $authCert = Get-FasAuthorizationCertificate -Address $script:TestConfig.FASAddress
 
@@ -189,6 +188,18 @@ Describe "FAS Complete Deployment Workflow" -Tag 'Integration', 'E2E' {
         }
 
         It "Should create FAS rule with all ACLs" {
+            # Setup prerequisites for this test
+            Initialize-MockService -Name "CitrixFederatedAuthenticationService" `
+                                  -Status "Running"
+
+            New-FasMsTemplate -Address $script:TestConfig.FASAddress `
+                             -Name "917Citrix_SmartcardLogon" `
+                             -SecurityGroupSID $script:TestConfig.FASSecurityGroupSID
+
+            $null = New-FasAuthorizationCertificate -Address $script:TestConfig.FASAddress `
+                                                   -CertificateAuthority $script:TestConfig.CAServers[0]
+
+            # Test execution
             # Arrange
             $authCert = Get-FasAuthorizationCertificate -Address $script:TestConfig.FASAddress
 
@@ -327,7 +338,12 @@ Describe "FAS Deployment Error Scenarios" -Tag 'Integration', 'ErrorHandling' {
     Context "Configuration Failures" {
 
         It "Should fail when creating certificate definition without authorization certificate" {
-            # Act & Assert
+            # Setup: Create template but NO authorization certificate
+            New-FasMsTemplate -Address $script:TestConfig.FASAddress `
+                             -Name "917Citrix_SmartcardLogon" `
+                             -SecurityGroupSID $script:TestConfig.FASSecurityGroupSID
+
+            # Act & Assert - Should fail because authorization certificate doesn't exist
             {
                 New-FasCertificateDefinition -Address $script:TestConfig.FASAddress `
                                             -Name "default_Definition" `
@@ -340,6 +356,10 @@ Describe "FAS Deployment Error Scenarios" -Tag 'Integration', 'ErrorHandling' {
         It "Should fail when creating rule with invalid SDDL" {
             # Arrange
             Initialize-MockService -Name "CitrixFederatedAuthenticationService" -Status "Running"
+
+            New-FasMsTemplate -Address $script:TestConfig.FASAddress `
+                             -Name "917Citrix_SmartcardLogon" `
+                             -SecurityGroupSID $script:TestConfig.FASSecurityGroupSID
 
             $authCert = New-FasAuthorizationCertificate -Address $script:TestConfig.FASAddress `
                                                        -CertificateAuthority $script:TestConfig.CAServers[0]

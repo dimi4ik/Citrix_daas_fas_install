@@ -77,10 +77,7 @@ function Get-Service {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true, Position=0)]
-        [string]$Name,
-
-        [Parameter(Mandatory=$false)]
-        [switch]$ErrorAction
+        [string]$Name
     )
 
     if ($script:MockServices.ContainsKey($Name)) {
@@ -88,7 +85,8 @@ function Get-Service {
     }
 
     # Simulate service not found
-    if ($ErrorAction -eq 'SilentlyContinue') {
+    # Check if ErrorAction common parameter was passed with SilentlyContinue
+    if ($PSBoundParameters.ContainsKey('ErrorAction') -and $ErrorAction -eq 'SilentlyContinue') {
         return $null
     }
 
@@ -231,10 +229,7 @@ function Get-ItemProperty {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true, Position=0)]
-        [string]$Path,
-
-        [Parameter(Mandatory=$false)]
-        [switch]$ErrorAction
+        [string]$Path
     )
 
     # Handle wildcard paths for software enumeration
@@ -246,7 +241,8 @@ function Get-ItemProperty {
         return $script:MockRegistry[$Path]
     }
 
-    if ($ErrorAction -eq 'SilentlyContinue') {
+    # Check if ErrorAction common parameter was passed with SilentlyContinue
+    if ($PSBoundParameters.ContainsKey('ErrorAction') -and $ErrorAction -eq 'SilentlyContinue') {
         return $null
     }
 
