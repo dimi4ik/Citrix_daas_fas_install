@@ -1,0 +1,135 @@
+name: PowerShell Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'scripts/**/*.ps1'
+      - 'scripts/**/*.psm1'
+      - 'tests/**/*.ps1'
+      - '.github/workflows/powershell-tests.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'scripts/**/*.ps1'
+      - 'scripts/**/*.psm1'
+      - 'tests/**/*.ps1'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run PowerShell Tests
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        test-type: ['Validation', 'Unit', 'Integration']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          Write-Host "Installing Pester 5.x..."
+          Install-Module -Name Pester -MinimumVersion 5.0.0 -MaximumVersion 5.99.99 -Scope CurrentUser -Force -SkipPublisherCheck
+
+          $pesterVersion = (Get-Module -ListAvailable -Name Pester | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
+          Write-Host "Pester version installed: $pesterVersion"
+
+      - name: Install PSScriptAnalyzer (for Validation tests)
+        if: matrix.test-type == 'Validation'
+        shell: pwsh
+        run: |
+          Write-Host "Installing PSScriptAnalyzer..."
+          Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck
+
+      - name: Run ${{ matrix.test-type }} Tests
+        shell: pwsh
+        run: |
+          Write-Host "Running ${{ matrix.test-type }} tests..."
+
+          .\tests\Invoke-Tests.ps1 `
+            -TestType ${{ matrix.test-type }} `
+            -OutputFormat JUnitXml `
+            -OutputPath "test-results-${{ matrix.test-type }}.xml" `
+            -Verbose
+        continue-on-error: false
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
+        if: always()
+        with:
+          files: 'test-results-${{ matrix.test-type }}.xml'
+          check_name: 'PowerShell Test Results (${{ matrix.test-type }})'
+          comment_title: 'PowerShell Test Results (${{ matrix.test-type }})'
+
+      - name: Upload Test Results Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-type }}
+          path: test-results-${{ matrix.test-type }}.xml
+          retention-days: 30
+
+  code-coverage:
+    name: Code Coverage Analysis
+    runs-on: windows-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -MinimumVersion 5.0.0 -Scope CurrentUser -Force -SkipPublisherCheck
+
+      - name: Run Tests with Code Coverage
+        shell: pwsh
+        run: |
+          Write-Host "Running tests with code coverage..."
+
+          .\tests\Invoke-Tests.ps1 `
+            -TestType All `
+            -CodeCoverage `
+            -Verbose
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./tests/coverage.xml
+          flags: powershell
+          name: powershell-coverage
+          fail_ci_if_error: false
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: tests/coverage.xml
+          retention-days: 30
+
+  summary:
+    name: Test Summary
+    runs-on: windows-latest
+    needs: [test, code-coverage]
+    if: always()
+
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate Summary
+        shell: pwsh
+        run: |
+          Write-Host "Test execution completed"
+          Write-Host "Check individual job results for details"
+
+          # List all downloaded artifacts
+          Get-ChildItem -Recurse -Filter "*.xml" | ForEach-Object {
+            Write-Host "Found result file: $($_.FullName)"
+          }
