@@ -10,14 +10,25 @@
     - Verifies successful installation
     - Creates event log entries
 
+.PARAMETER ConfigFile
+    Path to JSON configuration file. When specified, parameters are loaded from config file.
+    Example: ".\config\dev.json"
+
 .PARAMETER FASMSIPath
     Full path to the FAS MSI installer file.
     Example: "D:\x64\Federated Authentication Service\FederatedAuthenticationService_x64.msi"
+    Optional when ConfigFile is specified.
 
 .PARAMETER LogPath
     Optional path for log file. Default: "$env:TEMP\FAS-Deploy.log"
+    Can be overridden from config file.
 
 .EXAMPLE
+    # Using config file
+    .\Deploy-FAS.ps1 -ConfigFile ".\config\dev.json"
+
+.EXAMPLE
+    # Using explicit parameters (legacy mode)
     .\Deploy-FAS.ps1 -FASMSIPath "D:\x64\Federated Authentication Service\FederatedAuthenticationService_x64.msi"
 
 .NOTES
@@ -36,7 +47,19 @@
 
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false, ParameterSetName='ConfigFile')]
+    [ValidateScript({
+        if (-not (Test-Path $_)) {
+            throw "Config file not found at path: $_"
+        }
+        if ($_ -notmatch '\.(json|xml)$') {
+            throw "Config file must be JSON or XML: $_"
+        }
+        return $true
+    })]
+    [string]$ConfigFile,
+
+    [Parameter(Mandatory=$false, ParameterSetName='Manual')]
     [ValidateScript({
         if (-not (Test-Path $_)) {
             throw "FAS MSI file not found at path: $_"
@@ -49,7 +72,7 @@ param(
     [string]$FASMSIPath,
 
     [Parameter(Mandatory=$false)]
-    [string]$LogPath = "$env:TEMP\FAS-Deploy.log"
+    [string]$LogPath
 )
 
 # Strict mode for better error handling
@@ -57,6 +80,28 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 #region Helper Functions
+
+function Import-FASConfiguration {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ConfigFilePath
+    )
+
+    Write-Verbose "Loading configuration from: $ConfigFilePath"
+
+    try {
+        # Read and parse JSON config file
+        $configContent = Get-Content -Path $ConfigFilePath -Raw -ErrorAction Stop
+        $config = $configContent | ConvertFrom-Json -ErrorAction Stop
+
+        Write-Verbose "Configuration loaded successfully for environment: $($config.environment)"
+
+        return $config
+    }
+    catch {
+        throw "Failed to load configuration file: $($_.Exception.Message)"
+    }
+}
 
 function Write-Log {
     param(
@@ -223,9 +268,37 @@ function Test-Installation {
 #region Main Script
 
 try {
+    # Load configuration from file if specified
+    if ($PSCmdlet.ParameterSetName -eq 'ConfigFile') {
+        Write-Verbose "Using configuration file mode"
+        $config = Import-FASConfiguration -ConfigFilePath $ConfigFile
+
+        # Extract parameters from config
+        if (-not $FASMSIPath) {
+            $FASMSIPath = $config.fas.msiPath
+        }
+        if (-not $LogPath) {
+            $LogPath = $config.logging.deployLogPath
+        }
+    }
+
+    # Set default log path if not specified
+    if (-not $LogPath) {
+        $LogPath = "$env:TEMP\FAS-Deploy.log"
+    }
+
+    # Validate required parameters
+    if (-not $FASMSIPath) {
+        throw "FASMSIPath is required. Specify via -FASMSIPath parameter or in config file."
+    }
+
     Write-Log "========================================" -Level Info
     Write-Log "Citrix FAS Installation Script Started" -Level Info
     Write-Log "========================================" -Level Info
+    if ($ConfigFile) {
+        Write-Log "Config File: $ConfigFile" -Level Info
+        Write-Log "Environment: $($config.environment)" -Level Info
+    }
     Write-Log "MSI Path: $FASMSIPath" -Level Info
     Write-Log "Log Path: $LogPath" -Level Info
 

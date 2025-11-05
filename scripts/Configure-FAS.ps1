@@ -14,22 +14,35 @@
     - RSA 2048-bit keys
     - Microsoft Software Key Storage Provider
 
+.PARAMETER ConfigFile
+    Path to JSON configuration file. When specified, parameters are loaded from config file.
+    Example: ".\config\dev.json"
+
 .PARAMETER CertificateAuthority
     Array of Certificate Authority server FQDNs.
     Example: @("CA-SERVER-01.domain.com", "CA-SERVER-02.domain.com")
+    Optional when ConfigFile is specified.
 
 .PARAMETER FASAddress
     FQDN of the FAS Server.
     Example: "FAS-SERVER-01.domain.com"
+    Optional when ConfigFile is specified.
 
 .PARAMETER FASSecurityGroupSID
     Security Identifier (SID) of the FAS Servers security group.
     Example: "S-1-5-21-xxxxxxxxxx-xxxxxxxxxx-xxxxxxxxxx-xxxx"
+    Optional when ConfigFile is specified.
 
 .PARAMETER LogPath
     Optional path for log file. Default: "$env:TEMP\FAS-Configure.log"
+    Can be overridden from config file.
 
 .EXAMPLE
+    # Using config file
+    .\Configure-FAS.ps1 -ConfigFile ".\config\dev.json"
+
+.EXAMPLE
+    # Using explicit parameters (legacy mode)
     $CAServers = @("CA-SERVER-01.domain.com")
     $FASServer = "FAS-SERVER-01.domain.com"
     $FASSID = "S-1-5-21-123456789-123456789-123456789-1234"
@@ -56,20 +69,32 @@
 
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false, ParameterSetName='ConfigFile')]
+    [ValidateScript({
+        if (-not (Test-Path $_)) {
+            throw "Config file not found at path: $_"
+        }
+        if ($_ -notmatch '\.(json|xml)$') {
+            throw "Config file must be JSON or XML: $_"
+        }
+        return $true
+    })]
+    [string]$ConfigFile,
+
+    [Parameter(Mandatory=$false, ParameterSetName='Manual')]
     [ValidateNotNullOrEmpty()]
     [string[]]$CertificateAuthority,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false, ParameterSetName='Manual')]
     [ValidateNotNullOrEmpty()]
     [string]$FASAddress,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false, ParameterSetName='Manual')]
     [ValidatePattern('^S-1-5-21-\d+-\d+-\d+-\d+$')]
     [string]$FASSecurityGroupSID,
 
     [Parameter(Mandatory=$false)]
-    [string]$LogPath = "$env:TEMP\FAS-Configure.log"
+    [string]$LogPath
 )
 
 # Strict mode for better error handling
@@ -77,6 +102,28 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 #region Helper Functions
+
+function Import-FASConfiguration {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ConfigFilePath
+    )
+
+    Write-Verbose "Loading configuration from: $ConfigFilePath"
+
+    try {
+        # Read and parse JSON config file
+        $configContent = Get-Content -Path $ConfigFilePath -Raw -ErrorAction Stop
+        $config = $configContent | ConvertFrom-Json -ErrorAction Stop
+
+        Write-Verbose "Configuration loaded successfully for environment: $($config.environment)"
+
+        return $config
+    }
+    catch {
+        throw "Failed to load configuration file: $($_.Exception.Message)"
+    }
+}
 
 function Write-Log {
     param(
@@ -344,9 +391,49 @@ function Test-Configuration {
 #region Main Script
 
 try {
+    # Load configuration from file if specified
+    if ($PSCmdlet.ParameterSetName -eq 'ConfigFile') {
+        Write-Verbose "Using configuration file mode"
+        $config = Import-FASConfiguration -ConfigFilePath $ConfigFile
+
+        # Extract parameters from config
+        if (-not $CertificateAuthority) {
+            $CertificateAuthority = $config.certificateAuthority
+        }
+        if (-not $FASAddress) {
+            $FASAddress = $config.fas.address
+        }
+        if (-not $FASSecurityGroupSID) {
+            $FASSecurityGroupSID = $config.fas.securityGroupSID
+        }
+        if (-not $LogPath) {
+            $LogPath = $config.logging.configureLogPath
+        }
+    }
+
+    # Set default log path if not specified
+    if (-not $LogPath) {
+        $LogPath = "$env:TEMP\FAS-Configure.log"
+    }
+
+    # Validate required parameters
+    if (-not $CertificateAuthority) {
+        throw "CertificateAuthority is required. Specify via -CertificateAuthority parameter or in config file."
+    }
+    if (-not $FASAddress) {
+        throw "FASAddress is required. Specify via -FASAddress parameter or in config file."
+    }
+    if (-not $FASSecurityGroupSID) {
+        throw "FASSecurityGroupSID is required. Specify via -FASSecurityGroupSID parameter or in config file."
+    }
+
     Write-Log "========================================" -Level Info
     Write-Log "FAS Configuration Script Started" -Level Info
     Write-Log "========================================" -Level Info
+    if ($ConfigFile) {
+        Write-Log "Config File: $ConfigFile" -Level Info
+        Write-Log "Environment: $($config.environment)" -Level Info
+    }
     Write-Log "FAS Server: $FASAddress" -Level Info
     Write-Log "Certificate Authorities: $($CertificateAuthority -join ', ')" -Level Info
     Write-Log "FAS Security Group SID: $FASSecurityGroupSID" -Level Info
