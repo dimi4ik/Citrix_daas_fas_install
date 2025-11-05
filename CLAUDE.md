@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Primary Goal**: DevOps template repository for Citrix DaaS infrastructure projects with comprehensive AI tooling integration
-**Current Status**: Template preparation phase - no actual Terraform code yet, focus on scaffolding and documentation
-**Target Platforms**: Azure Cloud, On-Premises, Multi-Cloud Provider support
-**Core Technologies**: Terraform, Ansible, GitLab CI/CD, Citrix DaaS, VMware vSphere
+**Primary Goal**: DevOps template repository for Citrix DaaS FAS (Federated Authentication Service) installation
+**Current Status**: Initial project scaffolding with Claude Code commands and PowerShell automation scripts
+**Target Platforms**: Citrix DaaS with Federated Authentication Service
+**Core Technologies**: PowerShell (FAS configuration), Terraform (future IaC), GitLab CI/CD, Claude Code AI workflows
 
 ## Repository Architecture
 
@@ -16,187 +16,132 @@ This is a **template repository** providing scaffolding for DevOps projects, not
 ### Key Directories
 
 - `docs/` - Project documentation and specifications
-  - `architecture/` - System architecture and design patterns  
+  - `architecture/` - System architecture and design patterns
   - `deployment/` - Deployment guides and operations
   - `templates/` - Template customization and examples
-  - `promt/` - XML-formatted project specification and workflow definitions
-- `.claude/` - 19 Claude Code slash commands für ultra-fokussierte Terraform/Ansible Workflows (Ultra-DevOps-Fokussierung 2025-07-14)
-- `.github/copilot/` - GitHub Copilot instructions with Git workflow integration
-- `.gitlab/` - GitLab merge request templates
-- `archive/` - Archived AI tool collections (908K)
+  - `promt/` - XML-formatted project specification and Terraform import workflow definitions
+- `.claude/commands/` - **32 Claude Code slash commands** for Terraform, GitLab, task management, and AI-assisted workflows
+- `scripts/` - PowerShell automation scripts for Citrix FAS
+  - `Configure-FAS.ps1` - Main FAS configuration script
+  - `Configure-FAS-UserRules.ps1` - FAS user rules configuration
+  - `Deploy-FAS.ps1` - FAS deployment automation
+  - `copy-mcp-servers.py` - MCP server management utility
+  - `.mcp-aliases.sh` - MCP command aliases
+- `tasks/` - Task management and planning files (empty placeholder)
 
 ### Development Commands
 
-**Quality Assurance (via pre-commit hooks):**
-```bash
-terraform fmt                # Format Terraform code
-terraform validate          # Validate Terraform configuration
-terraform docs              # Auto-generate documentation
-tflint                      # Terraform linting with comprehensive rules
-trivy                       # Security scanning
-checkov                     # Infrastructure security analysis
+**PowerShell Scripts (Citrix FAS):**
+```powershell
+# FAS configuration and deployment
+.\scripts\Deploy-FAS.ps1                    # Deploy FAS infrastructure
+.\scripts\Configure-FAS.ps1                 # Configure FAS server
+.\scripts\Configure-FAS-UserRules.ps1       # Configure user authentication rules
 ```
 
-**Project Testing:**
+**Python Utilities:**
 ```bash
-# No specific test framework configured - discovery required
-# Check README.md or ask user for test commands
-# Suggest documenting discovered commands in this file
+python scripts/copy-mcp-servers.py          # Manage MCP server configurations
+source scripts/.mcp-aliases.sh              # Load MCP command aliases
 ```
 
-**Build Commands:**
+**Terraform (Future Implementation):**
 ```bash
-# Terraform-based infrastructure project
 terraform init              # Initialize Terraform working directory
 terraform plan              # Create execution plan
 terraform apply             # Apply configuration changes
 terraform destroy           # Destroy infrastructure (with confirmation)
+```
 
-# Ansible automation
-ansible-playbook -i inventory.yml <playbook.yml>  # Run Ansible playbooks
-ansible-playbook -i inventory.yml ping.yml        # Test connectivity
+**Quality Assurance:**
+```bash
+# Pre-commit hooks not yet configured
+# Use Claude Code slash commands for validation:
+# /tf-validate, /tf-security-scan, /tf-pre-commit
 ```
 
 **AI-Assisted Development:**
-- Use `/validate`, `/tf-validate`, `/plan`, `/tf-deploy` slash commands
-- 19 ultra-fokussierte commands in `.claude/` directory (Ultra-DevOps-Fokussierung 2025-07-14)
-- Pure Terraform/Ansible development workflows
+- Use `/tf-validate`, `/plan`, `/tf-deploy`, `/tf-security-scan` slash commands
+- 32 specialized commands in `.claude/commands/` directory
+- GitLab workflow integration via `/gitlab-*` commands
+- Task management via `/task-*` commands
 
-### Ultra-fokussierte Claude Slash Commands (19 Commands)
+### Claude Code Slash Commands (32 Commands)
 
-#### Ultra-fokussierte Command Categories (Ultra-DevOps-Fokussierung - 2025-07-14)
-- **Terraform Core**: 5 Commands (Essential Terraform Workflows)
-- **Infrastructure**: 3 Commands (Deploy, Generate, Validate)
-- **Security & Compliance**: 2 Commands (Audit, Hardening)
-- **DevOps Automation**: 2 Commands (GitOps, Pipeline Optimization)
-- **Dependencies**: 1 Command (Dependency Management)  
-- **Project Management**: 6 Commands (Essential Task Management)
+#### Command Categories
+- **Terraform Core**: 11 Commands (Complete Terraform lifecycle)
+- **GitLab Integration**: 7 Commands (Full GitLab workflow automation)
+- **Task Management**: 5 Commands (Project planning and tracking)
+- **AI Research**: 3 Commands (AI-powered research and reasoning)
+- **DevOps Automation**: 6 Commands (Planning, pipeline, GitOps, changelog)
 
-**Ultra-DevOps-Fokussierung implementiert:**
-✅ **Operations/Monitoring Commands entfernt**: 7 Commands archiviert (Ultra-Fokus erreicht)
-- `/health-check`, `/monitor-setup`, `/monitor`, `/log-trace`, `/incident-response` → Operations
-- `/containerize` → Container-Optimierung (nicht core Infrastructure)
-- `/ci-setup` → CI/CD Setup (GitOps ausreichend)
+#### Terraform Commands (11)
+1. **`/tf-validate`** - Comprehensive validation workflow (fmt, validate, plan)
+2. **`/tf-deploy`** - Safe production deployment with security checks
+3. **`/tf-destroy`** - Controlled infrastructure destruction with confirmations
+4. **`/tf-pre-commit`** - Git integration and quality gates
+5. **`/tf-security-scan`** - Advanced security and compliance scanning
+6. **`/tf-docs`** - Terraform documentation generation
+7. **`/tf-generate`** - Generate Terraform configurations
+8. **`/tf-modules`** - Terraform module management
+9. **`/tf-research`** - Research Terraform providers and resources
+10. **`/tf-gen-resource`** - Generate specific Terraform resources
+11. **`/tf-import_new`**, **`/tf-import_promt`** - Terraform import workflows
 
-✅ **Terraform Core Workflows**: 5 essential Commands
-- `/tf-validate` - Comprehensive Development Workflow
-- `/tf-deploy` - Safe Production Deployment  
-- `/tf-destroy` - Controlled Infrastructure Destruction
-- `/tf-pre-commit` - Git Integration & Quality Gates
-- `/tf-security-scan` - Advanced Security & Compliance
+#### GitLab Integration (7)
+12. **`/gitlab-workflow`** - Complete GitLab workflow automation
+13. **`/gitlab-mr`** - Merge request management
+14. **`/gitlab-commit`** - Automated commit workflows
+15. **`/gitlab-issue`** - Issue tracking and management
+16. **`/gitlab-repo`** - Repository operations
+17. **`/gitlab-sync`** - Repository synchronization
+18. **`/gitlab-labels`** - Label management
 
-✅ **Ultra-minimale Infrastructure Stack**: 14 spezialisierte Commands
-- Infrastructure (3), Security (2), DevOps Automation (2)
-- Dependencies (1), Project Management (6)
+#### Task Management (5)
+19. **`/task-create`** - Create hierarchical plans, tasks, and subtasks
+20. **`/task-update`** - Update status, progress, and priorities
+21. **`/task-list`** - List and filter tasks with hierarchical view
+22. **`/task-show`** - View detailed task information and context
+23. **`/task-search`** - Search across all tasks and plans
 
-**Ultra-DevOps-Fokussierungsresultat:**
-- **Command-Ultra-Fokussierung**: 26→19 Commands (-27% bei +100% Terraform/Ansible-Relevanz)
-- **Eliminierte Bereiche**: Monitoring, Container-Optimierung, CI-Setup
-- **Archiv-Organisation**: 7 Commands in `/operations/` kategorisiert
-- **User Experience**: +75% durch ultra-pure Terraform/Ansible-Fokussierung
+#### AI Research & Reasoning (3)
+24. **`/per-research`** - AI-powered research with Perplexity integration
+25. **`/per-ask`** - Ask questions with AI reasoning
+26. **`/per-reason`** - Deep reasoning and analysis
 
-#### Core Infrastructure Commands
-1. **`/validate`** - Comprehensive multi-language validation workflow
-   - Validates Terraform configuration
-   - Runs pre-commit hooks
-   - Checks documentation consistency
+#### DevOps Automation (6)
+27. **`/plan`** - Advanced project planning with task management
+28. **`/think`** - Strategic thinking and problem-solving
+29. **`/changelog`** - Automated changelog generation
+30. **`/gitops-sync`** - GitOps workflow synchronization
+31. **`/pipeline-optimize`** - CI/CD pipeline optimization
 
-2. **`/terraform-validate`** - Terraform-specific validation
-   - `terraform fmt -recursive`
-   - `terraform validate`
-   - Provider-specific validation rules
+#### Command Overview
+All 32 commands are actively maintained in `.claude/commands/` and provide comprehensive coverage for:
+- **Infrastructure as Code**: Complete Terraform development lifecycle
+- **Source Control Integration**: Full GitLab workflow automation with MCP
+- **Project Management**: Hierarchical task planning and tracking
+- **AI-Assisted Development**: Research, reasoning, and code generation
+- **DevOps Workflows**: Pipeline optimization, GitOps, changelog automation
 
-3. **`/plan`** - Advanced project planning with task management
-   - Creates detailed implementation plans
-   - Integrates with TodoWrite/TodoRead tools
-   - Breaks complex tasks into manageable steps
-
-4. **`/deploy`** - Infrastructure deployment automation
-   - Terraform plan/apply workflow
-   - Validation before deployment
-   - Post-deployment verification
-
-#### Task Management System
-5. **`/task-create`** - Create hierarchical plans, tasks, and subtasks
-6. **`/task-update`** - Update status, progress, and priorities  
-7. **`/task-list`** - List and filter tasks with hierarchical view
-8. **`/task-show`** - View detailed task information and context
-9. **`/task-log`** - Add timestamped progress updates
-10. **`/task-search`** - Search across all tasks and plans
-11. **`/task-archive`** - Archive completed work items
-
-#### Development & Operations
-12. **`/debug`** - Multi-language debugging assistance (Terraform, Ansible, Go, Python)
-13. **`/monitor`** - Infrastructure and application monitoring setup
-14. **`/harden`** - Security hardening analysis and recommendations
-15. **`/optimize`** - Performance optimization strategies
-16. **`/benchmark`** - Comprehensive performance analysis
-17. **`/containerize`** - Container and deployment optimization
-18. **`/dependencies`** - Dependency analysis and management
-
-#### Konsolidierte Terraform Commands
-19. **`/tf-validate`** - Comprehensive Terraform workflow (fmt, validate, plan)
-    - Merge von `/terraform-validate` + `/tf-flow` mit besten Features
-    - Smart directory detection, enhanced error context
-20. **`/tf-deploy`** - Enhanced deployment with safety checks  
-    - Upgrade von `/tf-apply` mit Confirmation-Workflow
-    - Pre-deployment security validation, rollback guidance
-21. **`/tf-destroy`** - Safe Terraform destroy with confirmations
-22. **`/tf-pre-commit`** - Comprehensive pre-commit validation
-23. **`/tf-security-scan`** - Advanced Terraform security scanning
-
-#### Command Management Strategy (Ultra-DevOps-Fokussierung abgeschlossen)
-**Active Commands**: 19 ultra-fokussierte Commands in `.claude/commands/` - 100% Terraform/Ansible-relevant
-**Archived Commands**: 77 Commands in `archive/ai-tools/claude-commands/` - systematisch kategorisiert
-
-**Komplette 5-Phasen Transformation:**
-✅ **Phase 1**: Command Audit (109→31 Commands analysiert)
-✅ **Phase 2**: Qualitäts-Upgrades (31→33 Commands, +150% Qualität)  
-✅ **Phase 3**: Terraform-Konsolidierung (33→32 Commands, +40% UX)
-✅ **Phase 4**: DevOps-Fokussierung (32→26 Commands, +100% Relevanz)
-✅ **Phase 5**: Ultra-Fokussierung (26→19 Commands, +300% Terraform/Ansible-Fokus)
-
-**Finale Archiv-Struktur:**
-```
-archive/ai-tools/claude-commands/
-├── deprecated/     # 15 veraltete Commands (scaffold-*, add-gitmoji, etc.)
-├── replaced/       # 6 ersetzte Commands (dependencies, optimize, security-audit, terraform-validate, tf-flow, tf-apply)
-├── non-devops/     # 6 non-DevOps Commands (benchmark, perf, debug, deep-dive, task-log, task-archive)
-├── operations/     # 7 Operations Commands (health-check, monitor-*, log-trace, incident-response, containerize, ci-setup)
-└── [active]/       # 45 Commands für potentielle Reaktivierung
-```
-
-**Ultra-fokussierte Command-Struktur:**
-- **Terraform Core (10)**: `/tf-validate`, `/tf-deploy`, `/tf-destroy`, `/tf-pre-commit`, `/tf-security-scan`, `/tf-docs`, `/tf-generate`, `/tf-modules`, `/tf-research`, `/tf-gen-resource`
-- **GitLab Integration (6)**: `/gitlab-workflow`, `/gitlab-mr`, `/gitlab-commit`, `/gitlab-issue`, `/gitlab-repo`, `/gitlab-sync`
-- **Task Management (5)**: `/task-create`, `/task-update`, `/task-list`, `/task-show`, `/task-search`
-- **AI Research (3)**: `/per-research`, `/per-ask`, `/per-reason`
-- **DevOps Automation (5)**: `/plan`, `/think`, `/changelog`, `/gitops-sync`, `/pipeline-optimize`
-
-**Ultra-fokussierte Qualitätsverteilung:**
-- **Terraform Excellence (10)**: Complete Infrastructure-as-Code workflows
-- **GitLab Automation (6)**: Full MCP integration für GitLab workflows
-- **AI-Powered Development (8)**: Task Management (5) + AI Research (3)
-- **DevOps Integration (5)**: Planning, Pipeline, GitOps automation
-
-**ROI Gesamtergebnis (5 Phasen):**
-- **Command-Ultra-Optimierung**: 109→19 Commands (-83% bei +500% Terraform/Ansible-Relevanz)
-- **Pure Infrastructure Focus**: 100% Terraform/Ansible workflow-relevante Commands
-- **Developer Experience**: +200% durch ultra-pure Infrastructure-Fokussierung
-- **Wartungsaufwand**: -80% durch radikale Vereinfachung
+These commands are optimized for Citrix DaaS infrastructure projects and integrate seamlessly with GitLab CI/CD workflows.
 
 ## Key Configuration Files
 
-- `.pre-commit-config.yaml` - Comprehensive hooks for Terraform validation, formatting, security scanning
-  - `terraform_fmt` - Automatic code formatting
-  - `terraform_validate` - Configuration syntax validation
-  - `terraform_docs` - Auto-generate module documentation
-  - `tflint` - Terraform linting with best practice rules
-  - `trivy` - Security vulnerability scanning
-  - `checkov` - Infrastructure security policy analysis
-- `docs/promt/promt.md` - XML-formatted project specification and workflow definition
-- `.gitignore` - Extensive coverage for Terraform, Visual Studio, macOS, development artifacts
-- `.claude/settings.local.json` - Claude permissions for Terraform operations, git workflows, and web research
+- `.gitignore` - Comprehensive patterns for Terraform state, MCP configurations, and development artifacts
+  - Terraform state files and directories (`.terraform/`, `*.tfstate`)
+  - MCP server configurations with sensitive data (`backups/mcp-config/`)
+  - Terraform override files and crash logs
+  - Environment-specific tfvars files
+- `.claudeignore` - Files excluded from Claude Code context
+- `docs/promt/` - XML-formatted project specifications
+  - `promt.md` - Main project specification and workflow definition
+  - `tf-import_promt.md` - Terraform import workflow prompts
+  - `tf-import_promt_enhanced.md` - Enhanced import workflows
+- `.claude/commands/` - 32 specialized slash commands for development workflows
+- `scripts/.mcp-aliases.sh` - MCP command aliases for shell integration
+
+**Note**: Pre-commit hooks and additional configuration files should be added during project initialization.
 
 ## User Preferences and Workflow (dima@lejkin.de)
 
@@ -221,12 +166,13 @@ archive/ai-tools/claude-commands/
 - **Branch Management**: Work on feature branches, clean up obsolete files
 
 ### Working Directory Context
-- **Primary Terraform Code**: Located in `terraform/` directory
-- **Configuration**: Environment-specific `.auto.tfvars` files (customer.auto.tfvars, sklad.auto.tfvars, 917-sff.auto.tfvars)
-- **Module Structure**: Uses external GitLab modules from `gitlab.abraxas-tools.ch/sit/`
-- **Resource Naming**: Follows `mandant_prefix` pattern (e.g., m019, m017, m098) for multi-tenant infrastructure
-- **Infrastructure Focus**: Azure Citrix DaaS with vSphere integration and image snapshot management
-- **Ansible Integration**: Comprehensive playbooks in `ansible/` for VM configuration and domain management
+- **Current Focus**: Citrix Federated Authentication Service (FAS) installation and configuration
+- **PowerShell Scripts**: Located in `scripts/` directory for FAS deployment and configuration
+- **MCP Integration**: Python utilities and shell aliases for MCP server management
+- **Documentation**: Comprehensive docs in `docs/` with architecture, deployment guides, and XML prompts
+- **Future Terraform**: Infrastructure as Code implementation planned (currently no `.tf` files)
+- **Task Management**: Empty `tasks/` directory ready for project planning files
+- **Git Workflow**: Development on `claude/init-project-*` branches, commits in German
 
 ### Code Standards
 - **Breaking Changes**: Document explicitly with migration guides
@@ -361,15 +307,21 @@ common_tags = {
 
 ## Quality Assurance Enhancement
 
-### Pre-Commit Hook Integration
-- **Comprehensive Scanning**: terraform_fmt, terraform_validate, terraform_docs, tflint, trivy, checkov
-- **TFLint Rules**: 15 specific rules including deprecated interpolation, unused declarations, naming conventions
-- **Security Scanning**: Trivy for vulnerability scanning, Checkov for infrastructure policy checks
-- **Code Quality**: Conventional commit messages, trailing whitespace, large file checks, private key detection
-- **Branch Protection**: Prevents commits to main/master branches
-- **Automatic Fixes**: Enable auto-fix for formatting and documentation generation
-- **Security Gates**: Block commits that fail security scanning
-- **Performance**: Optimize hook execution for faster development cycles
+### Pre-Commit Hook Integration (Planned)
+**Status**: Not yet configured - to be implemented during project initialization
+
+**Planned Configuration**:
+- **Terraform Quality**: `terraform_fmt`, `terraform_validate`, `terraform_docs`
+- **Linting**: `tflint` with comprehensive rules for best practices
+- **Security Scanning**: `trivy` (vulnerability scanning), `checkov` (policy checks)
+- **Code Quality**: Conventional commits, trailing whitespace detection, private key detection
+- **Branch Protection**: Prevent commits to main/master branches
+- **Automatic Fixes**: Auto-format and auto-generate documentation
+
+**Current Workaround**: Use Claude Code slash commands for validation:
+- `/tf-validate` - Format, validate, and plan
+- `/tf-security-scan` - Security and compliance scanning
+- `/tf-pre-commit` - Comprehensive pre-commit checks
 
 ### Test Framework Discovery
 - **No Assumptions**: Never assume specific test frameworks (pytest, npm test, etc.)
