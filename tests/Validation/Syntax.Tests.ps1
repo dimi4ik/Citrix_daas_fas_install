@@ -24,6 +24,25 @@ BeforeAll {
 
     Write-Host "Found $($script:AllScripts.Count) PowerShell files for validation"
 
+    # Build test data arrays for -ForEach
+    $script:ScriptTestData = @()
+    $script:Ps1ScriptTestData = @()
+
+    foreach ($scriptFile in $script:AllScripts) {
+        $testData = @{
+            Name = $scriptFile.Name
+            Path = $scriptFile.FullName
+        }
+        $script:ScriptTestData += $testData
+
+        # Separate array for *.ps1 files only
+        if ($scriptFile.Name -like '*.ps1') {
+            $script:Ps1ScriptTestData += $testData
+        }
+    }
+
+    Write-Host "Test Data: All Scripts = $($script:ScriptTestData.Count), PS1 Only = $($script:Ps1ScriptTestData.Count)"
+
     # Check if PSScriptAnalyzer is available
     $script:HasPSScriptAnalyzer = $null -ne (Get-Module -ListAvailable -Name PSScriptAnalyzer)
 
@@ -34,14 +53,7 @@ BeforeAll {
 
 Describe "PowerShell Script Syntax Validation" -Tag 'Validation', 'Syntax' {
 
-    Context "Parser Validation - <Name>" -ForEach @(
-        $script:AllScripts | ForEach-Object {
-            @{
-                Name = $_.Name
-                Path = $_.FullName
-            }
-        }
-    ) {
+    Context "Parser Validation - <Name>" -ForEach $script:ScriptTestData {
 
         It "Should have valid PowerShell syntax: <Name>" {
             # Arrange
@@ -91,14 +103,7 @@ Describe "PSScriptAnalyzer Validation" -Tag 'Validation', 'PSScriptAnalyzer' -Sk
         }
     }
 
-    Context "Script Analysis - <Name>" -ForEach @(
-        $script:AllScripts | ForEach-Object {
-            @{
-                Name = $_.Name
-                Path = $_.FullName
-            }
-        }
-    ) {
+    Context "Script Analysis - <Name>" -ForEach $script:ScriptTestData {
 
         It "Should pass PSScriptAnalyzer rules: <Name>" {
             # Act
@@ -153,14 +158,7 @@ Describe "PSScriptAnalyzer Validation" -Tag 'Validation', 'PSScriptAnalyzer' -Sk
 
 Describe "Security Best Practices" -Tag 'Validation', 'Security' {
 
-    Context "Security Checks - <Name>" -ForEach @(
-        $script:AllScripts | Where-Object { $_.Name -like '*.ps1' } | ForEach-Object {
-            @{
-                Name = $_.Name
-                Path = $_.FullName
-            }
-        }
-    ) {
+    Context "Security Checks - <Name>" -ForEach $script:Ps1ScriptTestData {
 
         It "Should use Set-StrictMode: <Name>" {
             # Arrange
@@ -191,14 +189,7 @@ Describe "Security Best Practices" -Tag 'Validation', 'Security' {
 
 Describe "Code Quality Standards" -Tag 'Validation', 'Quality' {
 
-    Context "Documentation - <Name>" -ForEach @(
-        $script:AllScripts | Where-Object { $_.Name -like '*.ps1' } | ForEach-Object {
-            @{
-                Name = $_.Name
-                Path = $_.FullName
-            }
-        }
-    ) {
+    Context "Documentation - <Name>" -ForEach $script:Ps1ScriptTestData {
 
         It "Should have comment-based help: <Name>" {
             # Arrange
@@ -225,14 +216,7 @@ Describe "Code Quality Standards" -Tag 'Validation', 'Quality' {
         }
     }
 
-    Context "Parameter Validation - <Name>" -ForEach @(
-        $script:AllScripts | Where-Object { $_.Name -like '*.ps1' } | ForEach-Object {
-            @{
-                Name = $_.Name
-                Path = $_.FullName
-            }
-        }
-    ) {
+    Context "Parameter Validation - <Name>" -ForEach $script:Ps1ScriptTestData {
 
         It "Should use CmdletBinding attribute: <Name>" {
             # Arrange
@@ -277,14 +261,7 @@ Describe "Code Quality Standards" -Tag 'Validation', 'Quality' {
 
 Describe "Encoding and Format Validation" -Tag 'Validation', 'Format' {
 
-    Context "File Encoding - <Name>" -ForEach @(
-        $script:AllScripts | ForEach-Object {
-            @{
-                Name = $_.Name
-                Path = $_.FullName
-            }
-        }
-    ) {
+    Context "File Encoding - <Name>" -ForEach $script:ScriptTestData {
 
         It "Should use UTF-8 encoding (with or without BOM): <Name>" {
             # Arrange
