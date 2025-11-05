@@ -1,5 +1,9 @@
 # Citrix FAS Installation - PowerShell Automation
 
+[![PowerShell Tests](https://github.com/dimi4ik/Citrix_daas_fas_install/actions/workflows/powershell-tests.yml/badge.svg)](https://github.com/dimi4ik/Citrix_daas_fas_install/actions/workflows/powershell-tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue.svg)](https://github.com/PowerShell/PowerShell)
+
 PowerShell-basierte Automatisierung für die Installation, Konfiguration und Verwaltung von Citrix Federated Authentication Service (FAS).
 
 ## Überblick
@@ -51,21 +55,31 @@ git clone https://github.com/dimi4ik/Citrix_daas_fas_install.git
 cd Citrix_daas_fas_install
 ```
 
-### 2. Konfiguration anpassen
+### 2. Tests ausführen (optional, empfohlen)
+
+```powershell
+# Pester installieren
+Install-Module -Name Pester -MinimumVersion 5.0.0 -Force
+
+# Alle Tests ausführen
+.\tests\Invoke-Tests.ps1 -TestType All
+```
+
+### 3. Konfiguration anpassen
 
 ```powershell
 # Editiere config/fas-config.json
 notepad config\fas-config.json
 ```
 
-### 3. Validierung
+### 4. Validierung
 
 ```powershell
 # PowerShell Syntax und Konfiguration validieren
 # Nutze Claude Code: /fas-validate
 ```
 
-### 4. Installation (Development/Testing)
+### 5. Installation (Development/Testing)
 
 ```powershell
 # Test mit -WhatIf flag
@@ -74,11 +88,11 @@ notepad config\fas-config.json
 .\scripts\Configure-FAS-UserRules.ps1 -WhatIf -Verbose
 ```
 
-### 5. Production Deployment
+### 6. Production Deployment
 
 ```powershell
 # Production Deployment mit Logging
-# Nutze Claude Code: /fas-deploy
+# Siehe: docs/DEPLOYMENT.md für Details
 ```
 
 ## Die 3 Core PowerShell Skripte
@@ -185,25 +199,69 @@ Dieses Repository enthält **7 spezialisierte Claude Code Slash Commands** für 
 6. **Kerberos Authentication** - VDA verwendet Certificate für Kerberos
 7. **Session Start** - Session startet (SSO - kein weiteres Passwort)
 
-## Testing
+## Testing & CI/CD
 
-### Comprehensive Test Suite
+### Automated Testing (GitHub Actions)
+
+Alle PowerShell-Skripte werden automatisch getestet bei jedem Push/Pull Request:
+
+- ✅ **Syntax Validation** - PowerShell Parser & PSScriptAnalyzer
+- ✅ **Unit Tests** - Mock-basierte Tests ohne Backend-Abhängigkeiten
+- ✅ **Integration Tests** - End-to-End Workflow Validation
+- ✅ **Code Coverage** - Automatische Coverage Reports
+
+**Status**: ![Tests](https://github.com/dimi4ik/Citrix_daas_fas_install/actions/workflows/powershell-tests.yml/badge.svg)
+
+### Lokale Tests ausführen
 
 ```powershell
-# Run all tests
-Invoke-Pester -Path .\tests\ -Output Detailed
+# Pester 5.x installieren
+Install-Module -Name Pester -MinimumVersion 5.0.0 -Force
 
-# Run specific test category
-Invoke-Pester -Path .\tests\Certificate-Issuance.Tests.ps1
+# Alle Tests ausführen
+.\tests\Invoke-Tests.ps1 -TestType All
+
+# Nur Syntax-Validierung (schnell)
+.\tests\Invoke-Tests.ps1 -TestType Validation
+
+# Mit Code Coverage
+.\tests\Invoke-Tests.ps1 -TestType All -CodeCoverage
 ```
 
 ### Test-Kategorien
 
-- **Infrastructure Tests** - Service, Network, CA Connectivity
-- **Configuration Tests** - FAS Config, Templates, Rules
-- **Certificate Tests** - Issuance, Validation, Revocation
-- **Performance Tests** - Certificate Issuance Performance
-- **Security Tests** - Certificate Chain, Permissions
+#### 1. **Validation Tests** (Syntax & Quality)
+- PowerShell Parser Validation
+- PSScriptAnalyzer Rules (Best Practices)
+- Security Checks (keine Hardcoded Credentials)
+- Code Quality Standards
+
+#### 2. **Unit Tests** (Isoliert mit Mocks)
+- Deploy-FAS.ps1 - Installation, Service Management
+- Configure-FAS.ps1 - Template Deployment, CA Integration
+- Configure-FAS-UserRules.ps1 - User Rules, ACLs
+
+#### 3. **Integration Tests** (End-to-End)
+- Full Deployment Workflow (Install → Configure → UserRules)
+- Template Schema Validation (917Citrix_SmartcardLogon)
+- Certificate Lifecycle (Authorization Certificate)
+- Error Handling Scenarios
+
+### Mock-basiertes Testing
+
+**Keine Backend-Infrastruktur erforderlich**:
+- ❌ Kein FAS Server
+- ❌ Keine Certificate Authority
+- ❌ Kein Active Directory
+- ✅ **100% isolierte Tests**
+
+**Vorteile**:
+- ⚡ Tests in Sekunden (nicht Minuten)
+- 🔄 Wiederholbar und konsistent
+- 🚀 CI/CD ready
+- 🎯 Fokus auf Logik und Error Handling
+
+**Dokumentation**: Siehe [`docs/TESTING.md`](docs/TESTING.md) für Details.
 
 ## Troubleshooting
 
