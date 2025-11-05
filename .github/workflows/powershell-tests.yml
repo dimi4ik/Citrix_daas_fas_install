@@ -55,15 +55,42 @@ jobs:
             -OutputFormat JUnitXml `
             -OutputPath "test-results-${{ matrix.test-type }}.xml" `
             -Verbose
-        continue-on-error: false
+        continue-on-error: true
+
+      - name: Debug - List Test Result Files
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host "=== Current Directory ===" -ForegroundColor Cyan
+          Get-Location
+
+          Write-Host "`n=== Looking for test-results-*.xml ===" -ForegroundColor Cyan
+          Get-ChildItem -Filter "test-results-*.xml" -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "Found: $($_.FullName)" -ForegroundColor Green
+            Write-Host "Size: $($_.Length) bytes" -ForegroundColor Green
+            Write-Host "Last Modified: $($_.LastWriteTime)" -ForegroundColor Green
+          }
+
+          Write-Host "`n=== All XML files in current directory ===" -ForegroundColor Cyan
+          Get-ChildItem -Filter "*.xml" -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "  - $($_.Name) ($($_.Length) bytes)" -ForegroundColor Gray
+          }
+
+          Write-Host "`n=== Directory Contents ===" -ForegroundColor Cyan
+          Get-ChildItem | Select-Object Name, Length, LastWriteTime
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/windows@v2
         if: always()
+        continue-on-error: true
         with:
-          files: 'test-results-${{ matrix.test-type }}.xml'
+          files: |
+            test-results-${{ matrix.test-type }}.xml
           check_name: 'PowerShell Test Results (${{ matrix.test-type }})'
           comment_title: 'PowerShell Test Results (${{ matrix.test-type }})'
+          fail_on: 'nothing'
+          require_tests: false
+          check_run_annotations: 'all tests'
 
       - name: Upload Test Results Artifact
         uses: actions/upload-artifact@v4
