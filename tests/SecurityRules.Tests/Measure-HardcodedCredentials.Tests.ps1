@@ -6,15 +6,37 @@
     Unit tests to validate hardcoded credential detection with proper
     handling of AD-specific values (SIDs, domain names, templates).
 
+    ⚠️ IMPORTANT: This file contains INTENTIONAL test credentials
+    =====================================================================
+    These are NOT real secrets and are used ONLY for unit testing:
+    - "MyPassword123" - Test password for detection validation
+    - "sk-abc123xyz789" - Test API key pattern
+    - "admin:password" - Test URL credentials
+    - "P@ssw0rd" - Test connection string password
+
+    These test credentials are:
+    ✅ Clearly fake (obvious test patterns)
+    ✅ Used ONLY in Pester unit tests
+    ✅ NEVER used in production code
+    ✅ Required to validate security rule detection
+
+    GitGuardian False Positives:
+    This file should be excluded from scanning via .gitguardian.yaml
+    Test credentials are essential for validating security detection logic.
+    =====================================================================
+
 .NOTES
     Author: FAS Security Team
-    Version: 1.0.0
+    Version: 1.0.1
     Date: 2025-11-05
 
     Requirements:
     - Pester 5.x
     - PSScriptAnalyzer
     - Measure-HardcodedCredentials.psm1
+
+    Security Note:
+    All credentials in this file are test data only and pose no security risk.
 #>
 
 BeforeAll {
