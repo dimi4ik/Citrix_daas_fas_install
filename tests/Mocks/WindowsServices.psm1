@@ -77,7 +77,10 @@ function Get-Service {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true, Position=0)]
-        [string]$Name
+        [string]$Name,
+
+        [Parameter(Mandatory=$false)]
+        [System.Management.Automation.ActionPreference]$ErrorAction = [System.Management.Automation.ActionPreference]::Continue
     )
 
     if ($script:MockServices.ContainsKey($Name)) {
@@ -85,8 +88,8 @@ function Get-Service {
     }
 
     # Simulate service not found
-    # Check if ErrorAction common parameter was passed with SilentlyContinue
-    if ($PSBoundParameters.ContainsKey('ErrorAction') -and $ErrorAction -eq 'SilentlyContinue') {
+    # Check if ErrorAction was set to SilentlyContinue
+    if ($ErrorAction -eq [System.Management.Automation.ActionPreference]::SilentlyContinue) {
         return $null
     }
 
