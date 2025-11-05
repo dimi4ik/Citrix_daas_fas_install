@@ -1,0 +1,26 @@
+# GitGuardian Configuration
+# https://docs.gitguardian.com/internal-repositories-monitoring/integrations/git_hooks/pre_commit
+
+# Exclude test files with intentional test credentials
+paths-ignore:
+  - tests/**/*.Tests.ps1
+  - tests/**/fixtures/**
+  - tests/SecurityRules.Tests/**
+
+# Exclude documentation with example secrets
+  - docs/security-tests-guide.md
+  - docs/security-rules-reference.md
+  - docs/PULL_REQUEST_DESCRIPTION.md
+
+# Exclude implementation plan with examples
+  - docs/security-tests-implementation-plan.md
+
+# Reason: Test files contain intentional test credentials to validate
+# security rule detection. These are NOT real secrets.
+# Example test passwords: "MyPassword123", "sk-abc123xyz789"
+
+# Note: All test credentials are:
+# - Clearly fake (obvious test patterns)
+# - Used only for Pester unit tests
+# - Never used in production
+# - Documented as test data in file headers
