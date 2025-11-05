@@ -73,14 +73,16 @@ function Get-Service {
     <#
     .SYNOPSIS
         Mock implementation of Get-Service
+    .NOTES
+        No [CmdletBinding()] to avoid Common Parameter conflict with explicit ErrorAction
     #>
-    [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true, Position=0)]
         [string]$Name,
 
         [Parameter(Mandatory=$false)]
-        [System.Management.Automation.ActionPreference]$ErrorAction = [System.Management.Automation.ActionPreference]::Continue
+        [ValidateSet('SilentlyContinue', 'Continue', 'Stop', 'Inquire', 'Ignore')]
+        [string]$ErrorAction = 'Continue'
     )
 
     if ($script:MockServices.ContainsKey($Name)) {
@@ -89,7 +91,7 @@ function Get-Service {
 
     # Simulate service not found
     # Check if ErrorAction was set to SilentlyContinue
-    if ($ErrorAction -eq [System.Management.Automation.ActionPreference]::SilentlyContinue) {
+    if ($ErrorAction -eq 'SilentlyContinue') {
         return $null
     }
 
