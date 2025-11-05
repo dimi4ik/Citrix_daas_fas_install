@@ -12,28 +12,43 @@
 
     IMPORTANT: This version uses CUSTOM template "917Citrix_SmartcardLogon"
 
+.PARAMETER ConfigFile
+    Path to JSON configuration file. When specified, parameters are loaded from config file.
+    Example: ".\config\dev.json"
+
 .PARAMETER StoreFrontPermissions
     Array of hashtables defining StoreFront server permissions.
     Example: @(@{SID="S-1-5-21-xxx-1001"; Permission="Allow"})
+    Optional when ConfigFile is specified.
 
 .PARAMETER VDAPermissions
     Array of hashtables defining VDA permissions.
     Example: @(@{SID="S-1-5-21-xxx-1002"; Permission="Allow"})
+    Optional when ConfigFile is specified.
 
 .PARAMETER UserPermissions
     Array of hashtables defining User permissions.
     Example: @(@{SID="S-1-5-21-xxx-1003"; Permission="Allow"})
+    Optional when ConfigFile is specified.
 
 .PARAMETER CertificateAuthority
     Array of Certificate Authority server FQDNs.
+    Optional when ConfigFile is specified.
 
 .PARAMETER FASAddress
     FQDN of the FAS Server.
+    Optional when ConfigFile is specified.
 
 .PARAMETER LogPath
     Optional path for log file. Default: "$env:TEMP\FAS-UserRules.log"
+    Can be overridden from config file.
 
 .EXAMPLE
+    # Using config file
+    .\Configure-FAS-UserRules.ps1 -ConfigFile ".\config\dev.json"
+
+.EXAMPLE
+    # Using explicit parameters (legacy mode)
     $StoreFrontPerms = @(@{SID="S-1-5-21-xxx-1001"; Permission="Allow"})
     $VDAPerms = @(@{SID="S-1-5-21-xxx-1002"; Permission="Allow"})
     $UserPerms = @(@{SID="S-1-5-21-xxx-1003"; Permission="Allow"})
@@ -61,28 +76,40 @@
 
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false, ParameterSetName='ConfigFile')]
+    [ValidateScript({
+        if (-not (Test-Path $_)) {
+            throw "Config file not found at path: $_"
+        }
+        if ($_ -notmatch '\.(json|xml)$') {
+            throw "Config file must be JSON or XML: $_"
+        }
+        return $true
+    })]
+    [string]$ConfigFile,
+
+    [Parameter(Mandatory=$false, ParameterSetName='Manual')]
     [ValidateNotNullOrEmpty()]
     [hashtable[]]$StoreFrontPermissions,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false, ParameterSetName='Manual')]
     [ValidateNotNullOrEmpty()]
     [hashtable[]]$VDAPermissions,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false, ParameterSetName='Manual')]
     [ValidateNotNullOrEmpty()]
     [hashtable[]]$UserPermissions,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false, ParameterSetName='Manual')]
     [ValidateNotNullOrEmpty()]
     [string[]]$CertificateAuthority,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false, ParameterSetName='Manual')]
     [ValidateNotNullOrEmpty()]
     [string]$FASAddress,
 
     [Parameter(Mandatory=$false)]
-    [string]$LogPath = "$env:TEMP\FAS-UserRules.log"
+    [string]$LogPath
 )
 
 # Strict mode for better error handling
@@ -90,6 +117,46 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 #region Helper Functions
+
+function Import-FASConfiguration {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ConfigFilePath
+    )
+
+    Write-Verbose "Loading configuration from: $ConfigFilePath"
+
+    try {
+        # Read and parse JSON config file
+        $configContent = Get-Content -Path $ConfigFilePath -Raw -ErrorAction Stop
+        $config = $configContent | ConvertFrom-Json -ErrorAction Stop
+
+        Write-Verbose "Configuration loaded successfully for environment: $($config.environment)"
+
+        return $config
+    }
+    catch {
+        throw "Failed to load configuration file: $($_.Exception.Message)"
+    }
+}
+
+function ConvertTo-PermissionHashtable {
+    param(
+        [Parameter(Mandatory=$true)]
+        [object[]]$Permissions
+    )
+
+    $hashtableArray = @()
+
+    foreach ($perm in $Permissions) {
+        $hashtableArray += @{
+            SID = $perm.SID
+            Permission = $perm.Permission
+        }
+    }
+
+    return $hashtableArray
+}
 
 function Write-Log {
     param(
@@ -385,9 +452,61 @@ function Test-Configuration {
 #region Main Script
 
 try {
+    # Load configuration from file if specified
+    if ($PSCmdlet.ParameterSetName -eq 'ConfigFile') {
+        Write-Verbose "Using configuration file mode"
+        $config = Import-FASConfiguration -ConfigFilePath $ConfigFile
+
+        # Extract parameters from config
+        if (-not $CertificateAuthority) {
+            $CertificateAuthority = $config.certificateAuthority
+        }
+        if (-not $FASAddress) {
+            $FASAddress = $config.fas.address
+        }
+        if (-not $StoreFrontPermissions) {
+            $StoreFrontPermissions = ConvertTo-PermissionHashtable -Permissions $config.permissions.storeFront
+        }
+        if (-not $VDAPermissions) {
+            $VDAPermissions = ConvertTo-PermissionHashtable -Permissions $config.permissions.vda
+        }
+        if (-not $UserPermissions) {
+            $UserPermissions = ConvertTo-PermissionHashtable -Permissions $config.permissions.user
+        }
+        if (-not $LogPath) {
+            $LogPath = $config.logging.userRulesLogPath
+        }
+    }
+
+    # Set default log path if not specified
+    if (-not $LogPath) {
+        $LogPath = "$env:TEMP\FAS-UserRules.log"
+    }
+
+    # Validate required parameters
+    if (-not $CertificateAuthority) {
+        throw "CertificateAuthority is required. Specify via -CertificateAuthority parameter or in config file."
+    }
+    if (-not $FASAddress) {
+        throw "FASAddress is required. Specify via -FASAddress parameter or in config file."
+    }
+    if (-not $StoreFrontPermissions) {
+        throw "StoreFrontPermissions is required. Specify via -StoreFrontPermissions parameter or in config file."
+    }
+    if (-not $VDAPermissions) {
+        throw "VDAPermissions is required. Specify via -VDAPermissions parameter or in config file."
+    }
+    if (-not $UserPermissions) {
+        throw "UserPermissions is required. Specify via -UserPermissions parameter or in config file."
+    }
+
     Write-Log "========================================" -Level Info
     Write-Log "FAS User Rules Configuration Started" -Level Info
     Write-Log "========================================" -Level Info
+    if ($ConfigFile) {
+        Write-Log "Config File: $ConfigFile" -Level Info
+        Write-Log "Environment: $($config.environment)" -Level Info
+    }
     Write-Log "FAS Server: $FASAddress" -Level Info
     Write-Log "Certificate Authority: $($CertificateAuthority -join ', ')" -Level Info
     Write-Log "StoreFront Permissions: $($StoreFrontPermissions.Count)" -Level Info

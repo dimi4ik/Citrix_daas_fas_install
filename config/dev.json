@@ -1,0 +1,40 @@
+{
+  "_comment": "FAS Configuration for Development Environment",
+  "environment": "dev",
+  "fas": {
+    "msiPath": "D:\\x64\\Federated Authentication Service\\FederatedAuthenticationService_x64.msi",
+    "address": "FAS-SERVER-DEV.contoso.com",
+    "securityGroupSID": "S-1-5-21-1234567890-1234567890-1234567890-1001"
+  },
+  "certificateAuthority": [
+    "CA-SERVER-DEV-01.contoso.com"
+  ],
+  "permissions": {
+    "storeFront": [
+      {
+        "SID": "S-1-5-21-1234567890-1234567890-1234567890-2001",
+        "Permission": "Allow",
+        "Description": "StoreFront Servers Group"
+      }
+    ],
+    "vda": [
+      {
+        "SID": "S-1-5-21-1234567890-1234567890-1234567890-3001",
+        "Permission": "Allow",
+        "Description": "VDA Servers Group"
+      }
+    ],
+    "user": [
+      {
+        "SID": "S-1-5-21-1234567890-1234567890-1234567890-4001",
+        "Permission": "Allow",
+        "Description": "Citrix Users Group"
+      }
+    ]
+  },
+  "logging": {
+    "deployLogPath": "C:\\Logs\\FAS\\Deploy-FAS-DEV.log",
+    "configureLogPath": "C:\\Logs\\FAS\\Configure-FAS-DEV.log",
+    "userRulesLogPath": "C:\\Logs\\FAS\\Configure-FAS-UserRules-DEV.log"
+  }
+}

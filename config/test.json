@@ -1,0 +1,46 @@
+{
+  "_comment": "FAS Configuration for Test Environment",
+  "environment": "test",
+  "fas": {
+    "msiPath": "D:\\x64\\Federated Authentication Service\\FederatedAuthenticationService_x64.msi",
+    "address": "FAS-SERVER-TEST.contoso.com",
+    "securityGroupSID": "S-1-5-21-1234567890-1234567890-1234567890-1002"
+  },
+  "certificateAuthority": [
+    "CA-SERVER-TEST-01.contoso.com",
+    "CA-SERVER-TEST-02.contoso.com"
+  ],
+  "permissions": {
+    "storeFront": [
+      {
+        "SID": "S-1-5-21-1234567890-1234567890-1234567890-2002",
+        "Permission": "Allow",
+        "Description": "StoreFront Servers Group"
+      }
+    ],
+    "vda": [
+      {
+        "SID": "S-1-5-21-1234567890-1234567890-1234567890-3002",
+        "Permission": "Allow",
+        "Description": "VDA Servers Group"
+      }
+    ],
+    "user": [
+      {
+        "SID": "S-1-5-21-1234567890-1234567890-1234567890-4002",
+        "Permission": "Allow",
+        "Description": "Citrix Users Group"
+      },
+      {
+        "SID": "S-1-5-21-1234567890-1234567890-1234567890-4003",
+        "Permission": "Deny",
+        "Description": "Test Deny Group"
+      }
+    ]
+  },
+  "logging": {
+    "deployLogPath": "C:\\Logs\\FAS\\Deploy-FAS-TEST.log",
+    "configureLogPath": "C:\\Logs\\FAS\\Configure-FAS-TEST.log",
+    "userRulesLogPath": "C:\\Logs\\FAS\\Configure-FAS-UserRules-TEST.log"
+  }
+}
