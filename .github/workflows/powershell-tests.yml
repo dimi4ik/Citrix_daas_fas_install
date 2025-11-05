@@ -89,7 +89,6 @@ jobs:
           check_name: 'PowerShell Test Results (${{ matrix.test-type }})'
           comment_title: 'PowerShell Test Results (${{ matrix.test-type }})'
           fail_on: 'nothing'
-          require_tests: false
           check_run_annotations: 'all tests'
 
       - name: Upload Test Results Artifact
