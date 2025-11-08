@@ -1,0 +1,204 @@
+# Pre-Commit Hooks Configuration for Citrix FAS Installation
+# Install: pip install pre-commit
+# Setup: pre-commit install
+
+repos:
+  # PowerShell Linting and Analysis
+  - repo: local
+    hooks:
+      # 1. PowerShell Syntax Validation
+      - id: powershell-syntax
+        name: PowerShell Syntax Check
+        entry: pwsh -NoProfile -Command
+        language: system
+        files: \.ps1$|\.psm1$
+        args:
+          - |
+            $files = $args
+            $errors = @()
+            foreach ($file in $files) {
+              Write-Host "Checking syntax: $file" -ForegroundColor Cyan
+              $content = Get-Content -Path $file -Raw
+              $tokens = $null
+              $parseErrors = $null
+              $null = [System.Management.Automation.Language.Parser]::ParseInput($content, [ref]$tokens, [ref]$parseErrors)
+              if ($parseErrors.Count -gt 0) {
+                $errors += $file
+                Write-Host "  ❌ Syntax errors found in $file" -ForegroundColor Red
+                $parseErrors | ForEach-Object { Write-Host "    $_" -ForegroundColor Red }
+              } else {
+                Write-Host "  ✅ Syntax OK: $file" -ForegroundColor Green
+              }
+            }
+            if ($errors.Count -gt 0) {
+              Write-Host "`n❌ Syntax check failed for $($errors.Count) file(s)" -ForegroundColor Red
+              exit 1
+            }
+            Write-Host "`n✅ All PowerShell files have valid syntax" -ForegroundColor Green
+
+      # 2. PSScriptAnalyzer
+      - id: psscriptanalyzer
+        name: PSScriptAnalyzer
+        entry: pwsh -NoProfile -Command
+        language: system
+        files: \.ps1$|\.psm1$
+        args:
+          - |
+            if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+              Write-Host "⚠️  PSScriptAnalyzer not installed. Install with:" -ForegroundColor Yellow
+              Write-Host "    Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force" -ForegroundColor Yellow
+              exit 1
+            }
+            Import-Module PSScriptAnalyzer
+            $files = $args
+            $allResults = @()
+            foreach ($file in $files) {
+              Write-Host "Analyzing: $file" -ForegroundColor Cyan
+              $results = Invoke-ScriptAnalyzer -Path $file -Settings ./PSScriptAnalyzerSettings.psd1
+              if ($results) {
+                $allResults += $results
+                $results | ForEach-Object {
+                  $color = switch ($_.Severity) {
+                    'Error' { 'Red' }
+                    'Warning' { 'Yellow' }
+                    'Information' { 'Cyan' }
+                  }
+                  Write-Host "  [$($_.Severity)] Line $($_.Line): $($_.Message)" -ForegroundColor $color
+                  Write-Host "    Rule: $($_.RuleName)" -ForegroundColor Gray
+                }
+              } else {
+                Write-Host "  ✅ No issues found" -ForegroundColor Green
+              }
+            }
+            $errors = $allResults | Where-Object { $_.Severity -eq 'Error' }
+            if ($errors.Count -gt 0) {
+              Write-Host "`n❌ PSScriptAnalyzer found $($errors.Count) error(s)" -ForegroundColor Red
+              exit 1
+            }
+            $warnings = $allResults | Where-Object { $_.Severity -eq 'Warning' }
+            if ($warnings.Count -gt 0) {
+              Write-Host "`n⚠️  PSScriptAnalyzer found $($warnings.Count) warning(s)" -ForegroundColor Yellow
+              Write-Host "Consider fixing warnings before committing." -ForegroundColor Yellow
+            } else {
+              Write-Host "`n✅ PSScriptAnalyzer: All checks passed" -ForegroundColor Green
+            }
+
+      # 3. Hardcoded Credential Detection
+      - id: credential-check
+        name: Hardcoded Credential Detection
+        entry: pwsh -NoProfile -Command
+        language: system
+        files: \.ps1$|\.psm1$|\.json$
+        args:
+          - |
+            $files = $args
+            $patterns = @(
+              '(?i)(password|pwd)\s*=\s*["\'](?!(\$|INSERT_|CHANGE_|YOUR_|PLACEHOLDER))[^"\']{3,}["\']',
+              '(?i)(api[_-]?key|apikey)\s*=\s*["\'][^"\']{10,}["\']',
+              'S-1-5-21-\d{10}-\d{10}-\d{10}-\d{4,5}(?!.*TEST|.*EXAMPLE|.*PLACEHOLDER)',
+              '(?i)(username|user)\s*=\s*["\'](?!(\$|INSERT_|CHANGE_|YOUR_|test))[^"\']{3,}\\[^"\']{3,}["\']'
+            )
+            $findings = @()
+            foreach ($file in $files) {
+              $content = Get-Content -Path $file -Raw
+              foreach ($pattern in $patterns) {
+                if ($content -match $pattern) {
+                  $findings += @{
+                    File = $file
+                    Pattern = $pattern
+                    Match = $Matches[0]
+                  }
+                }
+              }
+            }
+            if ($findings.Count -gt 0) {
+              Write-Host "❌ Potential hardcoded credentials detected:" -ForegroundColor Red
+              $findings | ForEach-Object {
+                Write-Host "  File: $($_.File)" -ForegroundColor Yellow
+                Write-Host "    Match: $($_.Match)" -ForegroundColor Red
+              }
+              Write-Host "`nPlease remove hardcoded credentials before committing." -ForegroundColor Red
+              exit 1
+            }
+            Write-Host "✅ No hardcoded credentials detected" -ForegroundColor Green
+
+      # 4. Trailing Whitespace
+      - id: trailing-whitespace
+        name: Remove Trailing Whitespace
+        entry: pwsh -NoProfile -Command
+        language: system
+        files: \.ps1$|\.psm1$|\.md$|\.json$
+        args:
+          - |
+            $files = $args
+            $modified = @()
+            foreach ($file in $files) {
+              $content = Get-Content -Path $file -Raw
+              $cleaned = $content -replace '[ \t]+(\r?\n)', '$1'
+              if ($content -ne $cleaned) {
+                Set-Content -Path $file -Value $cleaned -NoNewline
+                $modified += $file
+                Write-Host "  Fixed trailing whitespace: $file" -ForegroundColor Yellow
+              }
+            }
+            if ($modified.Count -gt 0) {
+              Write-Host "`n⚠️  Removed trailing whitespace from $($modified.Count) file(s)" -ForegroundColor Yellow
+              Write-Host "Please stage the changes and commit again." -ForegroundColor Yellow
+              exit 1
+            }
+            Write-Host "✅ No trailing whitespace found" -ForegroundColor Green
+
+      # 5. JSON Validation
+      - id: json-validation
+        name: JSON Syntax Validation
+        entry: pwsh -NoProfile -Command
+        language: system
+        files: \.json$
+        args:
+          - |
+            $files = $args
+            $errors = @()
+            foreach ($file in $files) {
+              try {
+                Write-Host "Validating JSON: $file" -ForegroundColor Cyan
+                $null = Get-Content -Path $file -Raw | ConvertFrom-Json -ErrorAction Stop
+                Write-Host "  ✅ Valid JSON" -ForegroundColor Green
+              } catch {
+                $errors += $file
+                Write-Host "  ❌ Invalid JSON: $($_.Exception.Message)" -ForegroundColor Red
+              }
+            }
+            if ($errors.Count -gt 0) {
+              Write-Host "`n❌ JSON validation failed for $($errors.Count) file(s)" -ForegroundColor Red
+              exit 1
+            }
+            Write-Host "`n✅ All JSON files are valid" -ForegroundColor Green
+
+  # Generic File Checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+        exclude: \.ps1$|\.psm1$  # PowerShell files handled separately
+      - id: mixed-line-ending
+        args: ['--fix=crlf']  # Windows line endings for PowerShell
+      - id: no-commit-to-branch
+        args: ['--branch', 'main', '--branch', 'master']
+
+  # Markdown Linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix']
+        exclude: CHANGELOG.md
+
+# Configuration
+fail_fast: false  # Run all hooks even if one fails
+default_language_version:
+  python: python3
