@@ -1,6 +1,32 @@
 # Citrix FAS Installation - PowerShell Automation
 
+[![Build Status](https://github.com/dimi4ik/Citrix_daas_fas_install/workflows/PowerShell%20Tests/badge.svg)](https://github.com/dimi4ik/Citrix_daas_fas_install/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue.svg)](https://github.com/PowerShell/PowerShell)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/dimi4ik/Citrix_daas_fas_install/graphs/commit-activity)
+[![GitHub release](https://img.shields.io/github/v/release/dimi4ik/Citrix_daas_fas_install?include_prereleases)](https://github.com/dimi4ik/Citrix_daas_fas_install/releases)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dimi4ik/Citrix_daas_fas_install/issues)
+
 PowerShell-basierte Automatisierung für die Installation, Konfiguration und Verwaltung von Citrix Federated Authentication Service (FAS).
+
+## 📑 Inhaltsverzeichnis
+
+- [Überblick](#überblick)
+- [Hauptfunktionen](#hauptfunktionen)
+- [Voraussetzungen](#voraussetzungen)
+- [Quick Start](#quick-start)
+- [Die 3 Core PowerShell Skripte](#die-3-core-powershell-skripte)
+- [Claude Code Commands](#claude-code-commands)
+- [FAS Architektur](#fas-architektur)
+- [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
+- [Backup & Recovery](#backup--recovery)
+- [Security Best Practices](#security-best-practices)
+- [Monitoring](#monitoring)
+- [Contributing](#contributing)
+- [Support](#support)
+- [License](#license)
 
 ## Überblick
 
@@ -288,12 +314,21 @@ Get-Counter -Counter "\Citrix FAS\Certificate Issuance Failures/sec"
 
 ## Contributing
 
-Contributions sind willkommen! Bitte beachten Sie:
+Wir freuen uns über Contributions! 🎉
 
-1. **PowerShell Best Practices** - PSScriptAnalyzer Clean
-2. **Testing** - Alle Tests müssen erfolgreich sein
-3. **Documentation** - Code Comments und README Updates
-4. **Security** - Keine Credentials in Code
+Bevor du einen Pull Request erstellst, lies bitte unsere [Contributing Guidelines](CONTRIBUTING.md).
+
+### Quick Contribution Checklist
+
+- ✅ **Fork** das Repository und erstelle einen Feature Branch
+- ✅ **Tests** - Alle Tests müssen erfolgreich sein (`.\tests\Invoke-Tests.ps1 -TestType All`)
+- ✅ **PSScriptAnalyzer** - Code muss PSScriptAnalyzer-clean sein
+- ✅ **Pre-Commit Hooks** - Installiere Pre-Commit Hooks (siehe [.pre-commit-setup.md](.pre-commit-setup.md))
+- ✅ **Documentation** - Update README und Code-Kommentare
+- ✅ **Security** - Keine hardcoded Credentials
+- ✅ **Commit Messages** - Folge [Conventional Commits](https://www.conventionalcommits.org/)
+
+Siehe [CONTRIBUTING.md](CONTRIBUTING.md) für Details.
 
 ## Support
 
@@ -309,7 +344,17 @@ Bei Problemen bitte GitHub Issues verwenden oder `/fas-troubleshoot` Command nut
 
 ## License
 
-MIT License - siehe [LICENSE](LICENSE) Datei für Details.
+Copyright © 2025 [Dima Lejkin](https://github.com/dimi4ik)
+
+Dieses Projekt ist unter der [MIT License](LICENSE) lizenziert - siehe [LICENSE](LICENSE) Datei für Details.
+
+### Kurzfassung
+
+✅ Kommerzielle Nutzung erlaubt
+✅ Modifikation erlaubt
+✅ Distribution erlaubt
+✅ Private Nutzung erlaubt
+⚠️ Keine Garantie oder Gewährleistung
 
 ## Maintainer
 
